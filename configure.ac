@@ -9,6 +9,7 @@ AC_PROG_MAKE_SET
 
 AC_CHECK_LIB(nsl, main)
 AC_CHECK_LIB(socket, main)
+AC_CHECK_LIB(pthread, main)
 
 AC_HEADER_DIRENT
 AC_HEADER_STDC

@@ -39,48 +39,51 @@
 #include "cdromtypes.h"
 
 #define	UNRECOGNIZED 	"unrecognized song"
-#define LAZY_VERSION	"0.24e"
-#define LAZY_DATE		"2006/Oct/13"
-#define	CONFIG_FILE		"lazyrc"
+#define UNKNOWN_ART     "Unknown Artist"
+#define LAZY_VERSION	"1.01"
+#define LAZY_DATE		"2014/Jun/28"
+#define	CONFIG_FILE		".lazyrc"
 #define ABORT_CONSTANT  9999999
 #define BUFFER_SIZE     4096
 
-typedef  unsigned char	unchar;
-typedef struct 
-{
-	char	*name;
+typedef unsigned char unchar;
+typedef struct {
+        char *name;
+        char *artist;
+        char *title;
 } MUSIC;
 
 /* function prototypes */
-int     set_global_vars (void);
-void	free_globals (void);
-void    play_cd (int, int, int);
-void    close_tray (int);
-void	show_intro (void);
-void	suicide (int);
-void    get_info (char *);
-void	skip_track (int);
-void	do_nop (void);
-struct CDROM_MSF_STRUCT *calculate_offsets (int, int *, int *);
+int set_global_vars(void);
+void free_globals(void);
+void play_cd(int, int, int);
+void close_tray(int);
+void show_intro(void);
+void suicide(int);
+void get_info(char *);
+void skip_track(int);
+void do_nop(void);
+struct CDROM_MSF_STRUCT *calculate_offsets(int, int *, int *);
 
-MUSIC	music[100];		/* set the max album musics								*/
-char	*artist;		/* global variable which stores the artist name			*/
-char	*album;			/* global variable which stores the album name			*/
-char	*AUDIO_DEVICE;	/* the audio device (usually /dev/dsp)					*/
-char	*CDDEV;			/* the CD device (usually /dev/cdrom)					*/
-char	*ADDRESS;		/* CDDB server address									*/
-char	*PORT;			/* CDDB server port										*/
-char	*CFIG_PATH;		/* path given in the config file						*/
-char	*REAL_PATH;		/* the real pathname to the CFIG_PATH					*/
-int		VERBOSE;		/* the initial verbose option							*/
-int		STOP_MUSIC;		/* stop the music when the program exit?				*/
-int		CLOSE_TRAY;		/* close the cd tray before read the CD?				*/
-int		SHOW_TIME;		/* show music time?										*/
-int 	SHOW_REMAINING;	/* show elapsed time instead of remaining				*/
-int	 	RANDOM;			/* don't play random by default.						*/
-int 	PLAYLIST;		/* don't have a desirable playlist by default			*/
-int		SHOWONLY;		/* don't wanna only show the tracks names by default	*/
-int		GLOBAL_TIME;	/* needed to skip tracks when displaying time, too 		*/
-int 	DIGITAL_EXTRACTION;	/* use digital extraction? */
+MUSIC music[100]; /* set the max album musics								*/
+char *artist; /* global variable which stores the artist name			*/
+char *album; /* global variable which stores the album name			*/
+char *AUDIO_DEVICE; /* the audio device (usually /dev/dsp)					*/
+char *CDDEV; /* the CD device (usually /dev/cdrom)					*/
+char *ADDRESS; /* CDDB server address									*/
+char *PORT; /* CDDB server port										*/
+char *CFIG_PATH; /* path given in the config file						*/
+char *REAL_PATH; /* the real pathname to the CFIG_PATH					*/
+int VERBOSE; /* the initial verbose option							*/
+int STOP_MUSIC; /* stop the music when the program exit?				*/
+int CLOSE_TRAY; /* close the cd tray before read the CD?				*/
+int SHOW_TIME; /* show music time?										*/
+int SHOW_REMAINING; /* show elapsed time instead of remaining				*/
+int RANDOM; /* don't play random by default.						*/
+int PLAYLIST; /* don't have a desirable playlist by default			*/
+int SHOWONLY; /* don't wanna only show the tracks names by default	*/
+int GLOBAL_TIME; /* needed to skip tracks when displaying time, too 		*/
+int DIGITAL_EXTRACTION; /* use digital extraction? */
 
+int TAKE_A_BREAK; /* pause playung */
 #endif /* _playcd_h */

@@ -64,7 +64,7 @@ typedef struct {
 
 
 /* prototypes */
-void	calculate_cdrom_globals (int);
+int	calculate_cdrom_globals (int);
 void	read_cdaudio (int, int, char *, int);
 int		read_cdtrack (int, int, int);
 int		cd_jc (int *, int *);

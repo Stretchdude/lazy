@@ -23,131 +23,126 @@
 #include "utils.h"
 #include "dsp.h"
 
-
-char *audio_format_str(void)
+char *
+audio_format_str(void)
 {
-    switch (AUDIO_FORMAT) {
-    case AFMT_U8:
-	return ("AFMT_U8");
-	break;
-    case AFMT_S8:
-	return ("AFMT_S8");
-	break;
-    case AFMT_S16_LE:
-	return ("AFMT_S16_LE");
-	break;
-    case AFMT_S16_BE:
-	return ("AFMT_S16_BE");
-	break;
-    case AFMT_U16_LE:
-	return ("AFMT_U16_LE");
-	break;
-    case AFMT_U16_BE:
-	return ("AFMT_U16_BE");
-	break;
-    }
-    return ("unknown (error)");
+        switch (AUDIO_FORMAT) {
+        case AFMT_U8:
+                return ("AFMT_U8");
+                break;
+        case AFMT_S8:
+                return ("AFMT_S8");
+                break;
+        case AFMT_S16_LE:
+                return ("AFMT_S16_LE");
+                break;
+        case AFMT_S16_BE:
+                return ("AFMT_S16_BE");
+                break;
+        case AFMT_U16_LE:
+                return ("AFMT_U16_LE");
+                break;
+        case AFMT_U16_BE:
+                return ("AFMT_U16_BE");
+                break;
+        }
+        return ("unknown (error)");
 }
-
 
 /*
  * open_dsp - open the dsp device
  */
 void open_dsp(void)
 {
-    int format, value, speed, channels, mask, option;
+        int format, value, speed, channels, mask, option;
 
+        /* try to open the device as Write-Only*/
+        audio_fd = open(AUDIO_DEVICE, O_WRONLY);
+        if (audio_fd < 0) {
+                /* disable plugin support and show a warning */
+                err_sys("open %s", AUDIO_DEVICE);
+                return;
+        }
 
-    /* try to open the device as Write-Only */
-    audio_fd = open(AUDIO_DEVICE, O_WRONLY);
-    if (audio_fd < 0) {
-	/* disable plugin support and show a warning */
-	err_sys("open %s", AUDIO_DEVICE);
-	return;
-    }
+        /* use the best supported audio formats */
+        value = ioctl(audio_fd, SNDCTL_DSP_GETFMTS, &mask);
+        if (value < 0)
+                err_sys("SNDCTL_DSP_GETFMTS");
 
-    /* use the best supported audio formats */
-    value = ioctl(audio_fd, SNDCTL_DSP_GETFMTS, &mask);
-    if (value < 0)
-	err_sys("SNDCTL_DSP_GETFMTS");
+        if (mask & AFMT_U16_BE)
+                AUDIO_FORMAT = AFMT_U16_BE;
+        else if (mask & AFMT_U16_LE)
+                AUDIO_FORMAT = AFMT_U16_LE;
+        else if (mask & AFMT_S16_BE)
+                AUDIO_FORMAT = AFMT_S16_BE;
+        else if (mask & AFMT_S16_LE)
+                AUDIO_FORMAT = AFMT_S16_LE;
+        else if (mask & AFMT_S8)
+                AUDIO_FORMAT = AFMT_S8;
+        else if (mask & AFMT_U8)
+                AUDIO_FORMAT = AFMT_U8;
 
-    if (mask & AFMT_U16_BE)
-	AUDIO_FORMAT = AFMT_U16_BE;
-    else if (mask & AFMT_U16_LE)
-	AUDIO_FORMAT = AFMT_U16_LE;
-    else if (mask & AFMT_S16_BE)
-	AUDIO_FORMAT = AFMT_S16_BE;
-    else if (mask & AFMT_S16_LE)
-	AUDIO_FORMAT = AFMT_S16_LE;
-    else if (mask & AFMT_S8)
-	AUDIO_FORMAT = AFMT_S8;
-    else if (mask & AFMT_U8)
-	AUDIO_FORMAT = AFMT_U8;
+        /* select the audio sample format */
+        format = AUDIO_FORMAT;
+        value = ioctl(audio_fd, SNDCTL_DSP_SETFMT, &format);
+        if (value < 0) {
+                /* disable plugin support and show a warning */
+                err_sys("SNDCTL_DSP_SETFMT");
+        }
+        if (format != AUDIO_FORMAT) {
+                /* use the unsigned 8-bit default format, used in mostly PC soundcards */
+                printf("Sample format 0x%x not supported by soundcard, using default AFMT_U8\n", AUDIO_FORMAT);
+                AUDIO_FORMAT = AFMT_U8;
+                format = AUDIO_FORMAT;
+                value = ioctl(audio_fd, SNDCTL_DSP_SETFMT, &format);
+                if (value < 0) {
+                        /* disable plugin support and show a warning */
+                        err_sys("SNDCTL_DSP_SPEED");
+                }
+        }
 
-    /* select the audio sample format */
-    format = AUDIO_FORMAT;
-    value = ioctl(audio_fd, SNDCTL_DSP_SETFMT, &format);
-    if (value < 0) {
-	/* disable plugin support and show a warning */
-	err_sys("SNDCTL_DSP_SETFMT");
-    }
-    if (format != AUDIO_FORMAT) {
-	/* use the unsigned 8-bit default format, used in mostly PC soundcards */
-	printf
-	    ("Sample format 0x%x not supported by soundcard, using default AFMT_U8\n",
-	     AUDIO_FORMAT);
-	AUDIO_FORMAT = AFMT_U8;
-	format = AUDIO_FORMAT;
-	value = ioctl(audio_fd, SNDCTL_DSP_SETFMT, &format);
-	if (value < 0) {
-	    /* disable plugin support and show a warning */
-	    err_sys("SNDCTL_DSP_SPEED");
-	}
-    }
+        /* set the number of channels (mono/stereo) */
+        channels = STEREO;
+        value = ioctl(audio_fd, SNDCTL_DSP_CHANNELS, &channels);
 
-    /* set the number of channels (mono/stereo) */
-    channels = STEREO;
-    value = ioctl(audio_fd, SNDCTL_DSP_CHANNELS, &channels);
+        option = 16;
+        ioctl(audio_fd, SNDCTL_DSP_SAMPLESIZE, &option);
+        option = 1;
+        ioctl(audio_fd, SNDCTL_DSP_STEREO, &option);
 
-    option = 16;
-    ioctl(audio_fd, SNDCTL_DSP_SAMPLESIZE, &option);
-    option = 1;
-    ioctl(audio_fd, SNDCTL_DSP_STEREO, &option);
+        /* set the sampling rate to 8Khz (8000), if going to play from .WAV files */
+        SAMPLING_RATE = 44100;
+        speed = SAMPLING_RATE;
+        value = ioctl(audio_fd, SNDCTL_DSP_SPEED, &speed);
+        if (value < 0) {
+                /* disable plugin support and show a warning */
+                err_sys("SNDCTL_DSP_SPEED");
+        }
 
-    /* set the sampling rate to 8Khz (8000), if going to play from .WAV files */
-    SAMPLING_RATE = 44100;
-    speed = SAMPLING_RATE;
-    value = ioctl(audio_fd, SNDCTL_DSP_SPEED, &speed);
-    if (value < 0) {
-	/* disable plugin support and show a warning */
-	err_sys("SNDCTL_DSP_SPEED");
-    }
-
-    /* dump soundcard information into stdout */
+        /* dump soundcard information into stdout */
 #ifdef DEBUG
-    printf("Audio format:\t%s\nChannels:\t%s\nSampling Rate:\t%d\n\n",
-	   audio_format_str(),
-	   channels == MONO ? "MONO" : "STEREO", SAMPLING_RATE);
+        printf ("Audio format:\t%s\nChannels:\t%s\nSampling Rate:\t%d\n\n",
+                        audio_format_str(),
+                        channels == MONO ? "MONO" : "STEREO",
+                        SAMPLING_RATE);
 #endif
 }
-
 
 /*
  * close_dsp - just close the dsp device
  */
 void close_dsp(void)
 {
-    int value;
+        int value;
 
-    value = close(audio_fd);
-    if (value < 0)
-	printf("Could not close the audio_fd device\n");
+        value = close(audio_fd);
+        if (value < 0)
+                printf("Could not close the audio_fd device\n");
 }
 
-
 int random_value(min, max)
-int min, max;
+        int min, max;
 {
-    int value = min + (int) ((float) max * rand() / (RAND_MAX + 1.0));
-    return (value);
+        int value = min + (int) ((float) max * rand() / (RAND_MAX + 1.0));
+        return (value);
 }

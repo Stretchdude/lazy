@@ -25,137 +25,129 @@
  */
 #include "wrappers.h"
 #include "playcd.h"
+#include "benrpi.h"
 
 int Mlock(addr, len)
-const void *addr;
-size_t len;
+        const void *addr;size_t len;
 {
-    int retval;
+        int retval;
 
-    retval = mlock(addr, len);
-    if (retval < 0)
-	perror("mlock");
-    return retval;
+        retval = mlock(addr, len);
+        if (retval < 0)
+                perror("mlock");
+        return retval;
 }
 
 int Munlock(addr, len)
-const void *addr;
-size_t len;
+        const void *addr;size_t len;
 {
-    int retval;
+        int retval;
 
-    retval = munlock(addr, len);
-    if (retval < 0)
-	perror("munlock");
-    return retval;
+        retval = munlock(addr, len);
+        if (retval < 0)
+                perror("munlock");
+        return retval;
 }
 
-void *Malloc(size)
-size_t size;
+void * Malloc(size)
+        size_t size;
 {
-    void *retval = NULL;
+        void *retval = NULL;
 
-    retval = malloc(size);
-    if (!retval) {
-	perror("malloc");
-	free_globals();
-	exit(EXIT_FAILURE);
-    }
+        retval = malloc(size);
+        if (!retval) {
+                perror("malloc");
+                free_globals();
+                exit(EXIT_FAILURE);
+        }
 
-    return retval;
+        return retval;
 }
 
-
-void *Calloc(nmemb, size)
-size_t nmemb, size;
+void * Calloc(nmemb, size)
+        size_t nmemb, size;
 {
-    void *retval = NULL;
+        void *retval = NULL;
 
-    retval = calloc(nmemb, size);
-    if (!retval) {
-	perror("calloc");
-	free_globals();
-	exit(EXIT_FAILURE);
-    }
+        retval = calloc(nmemb, size);
+        if (!retval) {
+                perror("calloc");
+                free_globals();
+                exit(EXIT_FAILURE);
+        }
 
-    return retval;
+        return retval;
 }
 
-void *Realloc(ptr, size)
-void *ptr;
-size_t size;
+void * Realloc(ptr, size)
+        void *ptr;size_t size;
 {
-    void *retval = NULL;
+        void *retval = NULL;
 
-    retval = realloc(ptr, size);
-    if (!retval) {
-	perror("realloc");
-	free_globals();
-	exit(EXIT_FAILURE);
-    }
-    return retval;
+        retval = realloc(ptr, size);
+        if (!retval) {
+                perror("realloc");
+                free_globals();
+                exit(EXIT_FAILURE);
+        }
+        return retval;
 }
 
 void Free(ptr)
-void *ptr;
+        void *ptr;
 {
-    if (ptr)
-	free(ptr);
-    return;
+    //    DOUT("->free: %s:%d\n", __FILE__, __LINE__);
+        if (ptr)
+                free(ptr);
+    //    DOUT("<-free: %s:%d\n", __FILE__, __LINE__);
+        return;
 }
 
 ssize_t Read(fd, buf, count)
-int fd;
-void *buf;
-size_t count;
+        int fd;void *buf;size_t count;
 {
-    ssize_t retval;
+        ssize_t retval;
 
-    retval = read(fd, buf, count);
-    if (retval < 0) {
-	fprintf(stdout, "fd %d: read: %s\n", fd, strerror(errno));
-	free_globals();
-	exit(EXIT_FAILURE);
-    }
+        retval = read(fd, buf, count);
+        if (retval < 0) {
+                fprintf(stdout, "fd %d: read: %s\n", fd, strerror(errno));
+                free_globals();
+                exit(EXIT_FAILURE);
+        }
 
-    return retval;
+        return retval;
 }
 
 ssize_t Read_n(fd, buf, count)
-int fd;
-void *buf;
-size_t count;
+        int fd;void *buf;size_t count;
 {
-    ssize_t retval = 0, n = 0;
+        ssize_t retval = 0, n = 0;
 
-    do {
-	retval = read(fd, buf + n, count - n);
-	if (retval < 0) {
-	    fprintf(stdout, "fd %d: read: %s\n", fd, strerror(errno));
-	    free_globals();
-	    exit(EXIT_FAILURE);
-	}
+        do {
+                retval = read(fd, buf + n, count - n);
+                if (retval < 0) {
+                        fprintf(stdout, "fd %d: read: %s\n", fd, strerror(errno));
+                        free_globals();
+                        exit(EXIT_FAILURE);
+                }
 
-	n += retval;
-    }
-    while (n < count);
+                n += retval;
+        } while (n < count);
 
-    return n;
+        return n;
 }
 
 ssize_t Write(fd, buf, count)
-int fd;
-const void *buf;
-size_t count;
+        int fd;const void *buf;size_t count;
 {
-    ssize_t retval;
+        ssize_t retval;
 
-    retval = write(fd, buf, count);
-    if (retval < 0) {
-	fprintf(stdout, "fd %d: write: %s\n", fd, strerror(errno));
-	free_globals();
-	exit(EXIT_FAILURE);
-    }
+        retval = write(fd, buf, count);
+        if (retval < 0) {
+                fprintf(stdout, "fd %d: write: %s\n", fd, strerror(errno));
+                free_globals();
+                exit(EXIT_FAILURE);
+        }
 
-    return retval;
+        return retval;
 }
